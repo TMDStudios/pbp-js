@@ -1,4 +1,38 @@
+* {
+    padding: 0;
+    margin: 0;
+}
 body {
     background-color: rgb(33, 33, 33);
-    color: snow;
+    color: green;
+    font-size: 1.2em;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    width: 800px;
+    margin: auto;
+    padding-top: 100px;
+}
+input {
+    background-color: rgb(33, 33, 33);
+    color: green;
+    font-size: 1.2em;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    border: none;
+    caret-shape: block;
+}
+input:focus, textarea:focus, select:focus{
+    outline: none;
+}
+#customCaret {
+    animation: blink 1s step-end infinite;
+    border-bottom: 2px solid green;
+}
+  
+@keyframes blink {
+    from,
+    to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: green;
+    }
 }
