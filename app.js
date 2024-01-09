@@ -6,13 +6,14 @@ function enterKeyPressed(event){
     if(consoleReady){
         console.log(event.keyCode)
         if(event.keyCode == 8){
-            handleUserInput("",true)
+            handleUserInput("",true);
         }else if(event.keyCode == 13){
-            alert("submit user input")
-        }else{
+            const lastUserInput = document.getElementById("userInput").innerHTML.split("<span")[0];
+            handleUserInput(lastUserInput, false, true);
+            startApp(lastUserInput);
+        }else if(/^[a-zA-Z0-9 +-=*/]+$/.test(event.key) && event.key.length==1){ // Only accept certain keys
             handleUserInput(event.key);
         }
-        // only look for alphanumeric keys
     }else{
         if(event.keyCode == 13){
             textSpeed = 1;
@@ -30,28 +31,50 @@ function displayText(element, text, letterPos){
     if(letterPos==text.length){
         element.innerHTML += "<br>";
         if(activitiOptionNum<activityChoices.length){
-            displayText(activityPrompt, activityChoices[activitiOptionNum], 0)
+            displayText(activityPrompt, activityChoices[activitiOptionNum], 0);
             activitiOptionNum++;
         }else{
-            element.innerHTML += '<br>$ <span id="userInput"></span><span id="customCaret">&nbsp;</span>'
+            element.innerHTML += '<br>$ <span id="userInput"></span><span id="customCaret">&nbsp;</span>';
             consoleReady = true;
             textSpeed = 25;
         }
     }
     if(letterPos<text.length && !finishText){
         setTimeout(() => {
-            displayText(element, text, letterPos)
+            displayText(element, text, letterPos);
         }, textSpeed);
     }
 }
 
 displayText(activityPrompt, activityPromptText, 0);
 
-function handleUserInput(userChar, delLast=false){
+function handleUserInput(userInput, delLast=false, submitInput=false){
+    if(submitInput){
+        document.getElementById("userInput").innerHTML = userInput+"<br>";
+        document.getElementById("customCaret").innerHTML = "";
+        document.getElementById("customCaret").id = "null";
+        return
+    }
     let currentUserText = document.getElementById("userInput").innerHTML;
     if(delLast){
         document.getElementById("userInput").innerHTML = currentUserText.substring(0, currentUserText.length-1);
     }else{
-        document.getElementById("userInput").innerHTML += userChar;
+        document.getElementById("userInput").innerHTML += userInput;
     }
+}
+
+const startApp = selectedApp => {
+    switch(parseInt(selectedApp)){
+        case 1:
+            numbersGameApp();
+            break;
+        default:
+            document.getElementById("userInput").id = "";
+            displayText(activityPrompt, "Please make a valid selection", 0);
+    }
+}
+
+const numbersGameApp = _ => {
+    document.getElementById("userInput").id = "";
+    displayText(activityPrompt, "Coming soon!", 0);
 }
