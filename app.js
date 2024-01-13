@@ -1,17 +1,22 @@
-var finishText = false;
 var consoleReady = false;
 var textSpeed = 25;
-document.addEventListener("keydown", enterKeyPressed, false);
-function enterKeyPressed(event){
+
+const enterKeyPressed = (event) => {
     if(consoleReady){
-        console.log(event.keyCode)
+        // console.log(event.keyCode)
         if(event.keyCode == 8){
             handleUserInput("",true);
         }else if(event.keyCode == 13){
             const lastUserInput = document.getElementById("userInput").innerHTML.split("<span")[0];
             handleUserInput(lastUserInput, false, true);
-            startApp(lastUserInput);
-        }else if(/^[a-zA-Z0-9 +-=*/]+$/.test(event.key) && event.key.length==1){ // Only accept certain keys
+            console.log(lastUserInput)
+            if(lastUserInput.toLowerCase()=="help"){
+                activitiOptionNum=0;
+                displayText(activityPrompt, activityPromptText, 0);
+            }else{
+                startApp(lastUserInput);
+            }
+        }else if(/^[a-zA-Z0-9 +-=*/?!@#$%^&()'`~]+$/.test(event.key) && event.key.length==1){ // Only accept certain keys
             handleUserInput(event.key);
         }
     }else{
@@ -20,12 +25,14 @@ function enterKeyPressed(event){
         }
     }
 }
+
+document.addEventListener("keydown", enterKeyPressed, false);
 const activityPrompt = document.getElementById("activityPrompt");
 const activityChoices = ["1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password"]
 var activitiOptionNum = 0;
 var activityPromptText = "Choose an activity from the list below";
 
-function displayText(element, text, letterPos){
+const displayText = (element, text, letterPos) => {
     element.innerHTML += text[letterPos];
     letterPos++;
     if(letterPos==text.length){
@@ -39,7 +46,7 @@ function displayText(element, text, letterPos){
             textSpeed = 25;
         }
     }
-    if(letterPos<text.length && !finishText){
+    if(letterPos<text.length){
         setTimeout(() => {
             displayText(element, text, letterPos);
         }, textSpeed);
@@ -48,11 +55,16 @@ function displayText(element, text, letterPos){
 
 displayText(activityPrompt, activityPromptText, 0);
 
-function handleUserInput(userInput, delLast=false, submitInput=false){
+const handleUserInput = (userInput, delLast=false, submitInput=false) => {
     if(submitInput){
         document.getElementById("userInput").innerHTML = userInput+"<br>";
         document.getElementById("customCaret").innerHTML = "";
         document.getElementById("customCaret").id = "null";
+        document.getElementById("fauxTerminal").scrollTop = document.getElementById("fauxTerminal").scrollHeight;
+        consoleReady = false;
+        if(userInput.toLowerCase()=="help"){
+            document.getElementById("userInput").id = "null";
+        }
         return
     }
     let currentUserText = document.getElementById("userInput").innerHTML;
@@ -70,7 +82,7 @@ const startApp = selectedApp => {
             break;
         default:
             document.getElementById("userInput").id = "";
-            displayText(activityPrompt, "Please make a valid selection", 0);
+            displayText(activityPrompt, "Please make a valid selection. Type help to see options again.", 0);
     }
 }
 

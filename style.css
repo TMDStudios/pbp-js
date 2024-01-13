@@ -13,20 +13,27 @@ body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     width: 800px;
     margin: auto;
-    padding-top: 100px;
+    padding-top: 64px;
 }
 #fauxTerminal {
     background-color: rgba(0,0,0,0.25);
     border: 1px solid snow;
     height: 80vh;
+    overflow-y: auto;
+    overflow: -moz-scrollbars-none;
+    -ms-overflow-style: none;
+}
+#fauxTerminal::-webkit-scrollbar {
+    width: 0 !important
 }
 #fauxTerminalTop {
     background-color: rgba(255,255,255,0.5);
     height: 32px;
-    border-bottom: 1px solid snow;
+    border: 1px solid snow;
+    border-bottom: none;
 }
 #activity {
-    padding: 16px;
+    padding: 16px 16px 128px 16px;
 }
 input {
     background-color: rgb(33, 33, 33);
