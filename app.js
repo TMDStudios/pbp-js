@@ -50,7 +50,6 @@ const displayText = (element, text, letterPos) => {
         element.innerHTML += "<br>";
         document.getElementById("fauxTerminal").scrollTop = document.getElementById("fauxTerminal").scrollHeight;
         if(messageQueue.length>0){
-            console.log(messageQueue)
             displayText(activityPrompt, messageQueue[0], 0);
             messageQueue.shift();
         }else{
@@ -95,8 +94,7 @@ const startApp = selectedApp => {
             numbersGameData['answer'] = Math.floor(Math.random()*10);
             numbersGameData['count'] = 0;
             console.log(numbersGameData['answer'])
-            messageQueue.push("Starting Numbers Game");
-            messageQueue.push("Guess a number between 0 and 10");
+            messageQueue.push("Starting Numbers Game", "Type 'exit' at any time to return to the main menu", "Guess a number between 0 and 10");
             numbersGameApp(); // HERE
             break;
         default:
@@ -106,23 +104,26 @@ const startApp = selectedApp => {
 
 const numbersGameApp = (guess=null) => {
     if(guess){
-        if(isNaN(guess)){
-            displayText(activityPrompt, "Please enter a valid number", 0);
+        if(guess.toLowerCase()=="exit"){
+            messageQueue.push("Game over. Returning to main menu.");
+            endGame();
         }else{
-            if(guess == numbersGameData['answer']){
-                currentApp = 0;
-                messageQueue.push(
-                    "You got it! Thank you for playing.",
-                    "*************************", 
-                    "Choose an activity from the list below", 
-                    "1: Numbers Game", 
-                    "2: Calculator", 
-                    "3: Guess the Phrase", 
-                    "4: Username and Password");
-                displayText(activityPrompt, " ", 0);
+            if(isNaN(guess)){
+                displayText(activityPrompt, "Please enter a valid number", 0);
             }else{
-                numbersGameData['count']++;
-                displayText(activityPrompt, "Try again", 0);
+                if(guess == numbersGameData['answer']){
+                    messageQueue.push("You got it! Thank you for playing.");
+                    endGame();
+                }else{
+                    if(numbersGameData['count']==2){
+                        messageQueue.push(`You lose. The number was ${numbersGameData['answer']}.`);
+                        endGame();
+                    }else{
+                        numbersGameData['count']++;
+                        messageQueue.push("Try again.", `You have guessed ${numbersGameData['count']} time(s).`);
+                        displayText(activityPrompt, " ", 0);
+                    }
+                }
             }
         }
     }else{
@@ -132,4 +133,16 @@ const numbersGameApp = (guess=null) => {
             displayText(activityPrompt, " ", 0);
         }
     }
+}
+
+const endGame = _ => {
+    currentApp = 0;
+    messageQueue.push(
+        "*************************", 
+        "Choose an activity from the list below", 
+        "1: Numbers Game", 
+        "2: Calculator", 
+        "3: Guess the Phrase", 
+        "4: Username and Password");
+    displayText(activityPrompt, " ", 0);
 }
