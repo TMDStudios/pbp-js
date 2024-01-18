@@ -3,6 +3,7 @@ var textSpeed = 25;
 var currentApp = 0; //0-Main, 1-Numbers, 2-Calc, 3-Phrase, 4-Username/Password
 const messageQueue = ["Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password"];
 const numbersGameData = {};
+const calculatorData = {};
 
 const enterKeyPressed = (event) => {
     if(consoleReady){
@@ -12,23 +13,29 @@ const enterKeyPressed = (event) => {
         }else if(event.keyCode == 13){
             const lastUserInput = document.getElementById("userInput").innerHTML.split("<span")[0];
             handleUserInput(lastUserInput, false, true);
-            switch(currentApp){
-                case 1:
-                    numbersGameApp(lastUserInput);
-                    break;
-                case 2:
-                    // Calculator
-                case 3:
-                    // Guess the Phrase
-                case 4:
-                    // Username and Password
-                default:
-                    if(lastUserInput.toLowerCase()=="help"){
-                        messageQueue.push("Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password");
-                        displayText(activityPrompt, " ", 0);
-                    }else{
-                        startApp(lastUserInput);
-                    }
+            if(lastUserInput.toLowerCase()=="exit"){
+                messageQueue.push("Returning to main menu.");
+                backToMain();
+            }else{
+                switch(currentApp){
+                    case 1:
+                        numbersGameApp(lastUserInput);
+                        break;
+                    case 2:
+                        calculatorApp(lastUserInput);
+                        break;
+                    case 3:
+                        // Guess the Phrase
+                    case 4:
+                        // Username and Password
+                    default:
+                        if(lastUserInput.toLowerCase()=="help"){
+                            messageQueue.push("Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password");
+                            displayText(activityPrompt, " ", 0);
+                        }else{
+                            startApp(lastUserInput);
+                        }
+                }
             }
         }else if(/^[a-zA-Z0-9 +-=*/?!@#$%^&()'`~]+$/.test(event.key) && event.key.length==1){ // Only accept certain keys
             handleUserInput(event.key);
@@ -93,9 +100,17 @@ const startApp = selectedApp => {
             currentApp = 1;
             numbersGameData['answer'] = Math.floor(Math.random()*10);
             numbersGameData['count'] = 0;
-            console.log(numbersGameData['answer'])
+            // console.log(numbersGameData['answer'])
             messageQueue.push("Starting Numbers Game", "Type 'exit' at any time to return to the main menu", "Guess a number between 0 and 10");
-            numbersGameApp(); // HERE
+            numbersGameApp();
+            break;
+        case 2:
+            currentApp = 2;
+            messageQueue.push(
+                "Starting Calculator App", 
+                "Enter a basic equation with two numbers and one operator (i.e. 5*3)", 
+                "Type 'exit' at any time to return to the main menu");
+            calculatorApp();
             break;
         default:
             displayText(activityPrompt, "Please make a valid selection. Type help to see options again.", 0);
@@ -104,25 +119,20 @@ const startApp = selectedApp => {
 
 const numbersGameApp = (guess=null) => {
     if(guess){
-        if(guess.toLowerCase()=="exit"){
-            messageQueue.push("Game over. Returning to main menu.");
-            endGame();
+        if(isNaN(guess)){
+            displayText(activityPrompt, "Please enter a valid number", 0);
         }else{
-            if(isNaN(guess)){
-                displayText(activityPrompt, "Please enter a valid number", 0);
+            if(guess == numbersGameData['answer']){
+                messageQueue.push("You got it! Thank you for playing.");
+                backToMain();
             }else{
-                if(guess == numbersGameData['answer']){
-                    messageQueue.push("You got it! Thank you for playing.");
-                    endGame();
+                if(numbersGameData['count']==2){
+                    messageQueue.push(`You lose. The number was ${numbersGameData['answer']}.`);
+                    backToMain();
                 }else{
-                    if(numbersGameData['count']==2){
-                        messageQueue.push(`You lose. The number was ${numbersGameData['answer']}.`);
-                        endGame();
-                    }else{
-                        numbersGameData['count']++;
-                        messageQueue.push("Try again.", `You have guessed ${numbersGameData['count']} time(s).`);
-                        displayText(activityPrompt, " ", 0);
-                    }
+                    numbersGameData['count']++;
+                    messageQueue.push("Try again.", `You have guessed ${numbersGameData['count']} time(s).`);
+                    displayText(activityPrompt, " ", 0);
                 }
             }
         }
@@ -135,7 +145,56 @@ const numbersGameApp = (guess=null) => {
     }
 }
 
-const endGame = _ => {
+const calculatorApp = (userInput=null) => { // Add support for negative numbers!!
+    if(userInput){
+        if(userInput.includes('+')){
+            try{
+                const num1 = userInput.split('+')[0];
+                const num2 = userInput.split('+')[1];
+                const output = parseInt(num1)+parseInt(num2);
+                messageQueue.push(`${num1}+${num2}=${output}`);
+            }catch{
+                messageQueue.push("Please enter a valid equation (i.e. 9-5)");
+            }
+        }else if(userInput.includes('-')){
+            try{
+                const num1 = userInput.split('-')[0];
+                const num2 = userInput.split('-')[1];
+                const output = parseInt(num1)-parseInt(num2);
+                messageQueue.push(`${num1}-${num2}=${output}`);
+            }catch{
+                messageQueue.push("Please enter a valid equation (i.e. 9-5)");
+            }
+        }else if(userInput.includes('*')){
+            try{
+                const num1 = userInput.split('*')[0];
+                const num2 = userInput.split('*')[1];
+                const output = parseInt(num1)*parseInt(num2);
+                messageQueue.push(`${num1}*${num2}=${output}`);
+            }catch{
+                messageQueue.push("Please enter a valid equation (i.e. 9-5)");
+            }
+        }else if(userInput.includes('/')){
+            try{
+                const num1 = userInput.split('/')[0];
+                const num2 = userInput.split('/')[1];
+                if(num1==0||num2==0){
+                    messageQueue.push("You cannot divide by 0");
+                }else{
+                    const output = parseInt(num1)/parseInt(num2);
+                    messageQueue.push(`${num1}/${num2}=${output}`);
+                }
+            }catch{
+                messageQueue.push("Please enter a valid equation (i.e. 9-5)");
+            }
+        }else{
+            messageQueue.push("Please enter a valid equation (i.e. 9-5)");
+        }
+    }
+    displayText(activityPrompt, " ", 0);
+}
+
+const backToMain = _ => {
     currentApp = 0;
     messageQueue.push(
         "*************************", 
