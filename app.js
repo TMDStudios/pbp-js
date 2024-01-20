@@ -3,7 +3,6 @@ var textSpeed = 25;
 var currentApp = 0; //0-Main, 1-Numbers, 2-Calc, 3-Phrase, 4-Username/Password
 const messageQueue = ["Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password"];
 const numbersGameData = {};
-const calculatorData = {};
 
 const enterKeyPressed = (event) => {
     if(consoleReady){
@@ -145,30 +144,34 @@ const numbersGameApp = (guess=null) => {
     }
 }
 
-const calculatorApp = (userInput=null) => { // Add support for negative numbers!!
+const calculatorApp = (userInput=null) => {
+    // Handle negative numbers
+    let overrideOperator = null;
     if(userInput){
+        if(userInput.includes('+-')||userInput.includes('--')||userInput.includes('*-')||userInput.includes('/-')){
+            overrideOperator = true;
+        }
         if(userInput.includes('+')){
             try{
-                const num1 = userInput.split('+')[0];
-                const num2 = userInput.split('+')[1];
+                let num1 = userInput.split('+')[0];
+                let num2 = userInput.split('+')[1];
+                if(overrideOperator){
+                    num1 = userInput.split('+-')[0];
+                    num2 = userInput.split('+-')[1]*-1;
+                }
                 const output = parseInt(num1)+parseInt(num2);
                 messageQueue.push(`${num1}+${num2}=${output}`);
             }catch{
                 messageQueue.push("Please enter a valid equation (i.e. 9-5)");
             }
-        }else if(userInput.includes('-')){
-            try{
-                const num1 = userInput.split('-')[0];
-                const num2 = userInput.split('-')[1];
-                const output = parseInt(num1)-parseInt(num2);
-                messageQueue.push(`${num1}-${num2}=${output}`);
-            }catch{
-                messageQueue.push("Please enter a valid equation (i.e. 9-5)");
-            }
         }else if(userInput.includes('*')){
             try{
-                const num1 = userInput.split('*')[0];
-                const num2 = userInput.split('*')[1];
+                let num1 = userInput.split('*')[0];
+                let num2 = userInput.split('*')[1];
+                if(overrideOperator){
+                    num1 = userInput.split('*-')[0];
+                    num2 = userInput.split('*-')[1]*-1;
+                }
                 const output = parseInt(num1)*parseInt(num2);
                 messageQueue.push(`${num1}*${num2}=${output}`);
             }catch{
@@ -176,8 +179,12 @@ const calculatorApp = (userInput=null) => { // Add support for negative numbers!
             }
         }else if(userInput.includes('/')){
             try{
-                const num1 = userInput.split('/')[0];
-                const num2 = userInput.split('/')[1];
+                let num1 = userInput.split('/')[0];
+                let num2 = userInput.split('/')[1];
+                if(overrideOperator){
+                    num1 = userInput.split('/-')[0];
+                    num2 = userInput.split('/-')[1]*-1;
+                }
                 if(num1==0||num2==0){
                     messageQueue.push("You cannot divide by 0");
                 }else{
@@ -185,6 +192,20 @@ const calculatorApp = (userInput=null) => { // Add support for negative numbers!
                     messageQueue.push(`${num1}/${num2}=${output}`);
                 }
             }catch{
+                messageQueue.push("Please enter a valid equation (i.e. 9-5)");
+            }
+        }else if(userInput.includes('-')){
+            try{
+                let num1 = userInput.split('-')[0];
+                let num2 = userInput.split('-')[1];
+                if(overrideOperator){
+                    num1 = userInput.split('--')[0];
+                    num2 = userInput.split('--')[1]*-1;
+                }
+                const output = parseInt(num1)-parseInt(num2);
+                messageQueue.push(`${num1}-${num2}=${output}`);
+            }catch(e){
+                console.log(e)
                 messageQueue.push("Please enter a valid equation (i.e. 9-5)");
             }
         }else{
