@@ -3,6 +3,9 @@ var textSpeed = 25;
 var currentApp = 0; //0-Main, 1-Numbers, 2-Calc, 3-Phrase, 4-Username/Password
 const messageQueue = ["Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password"];
 const numbersGameData = {};
+const guessThePhraseData = {
+    phrasePool: ["this is the secret phrase", "she sells seashells", "this is the way", "fun with flags", "may the force be with you"]
+};
 
 const enterKeyPressed = (event) => {
     if(consoleReady){
@@ -24,7 +27,8 @@ const enterKeyPressed = (event) => {
                         calculatorApp(lastUserInput);
                         break;
                     case 3:
-                        // Guess the Phrase
+                        guessThePhraseApp(lastUserInput);
+                        break;
                     case 4:
                         // Username and Password
                     default:
@@ -111,13 +115,38 @@ const startApp = selectedApp => {
                 "Type 'exit' at any time to return to the main menu");
             calculatorApp();
             break;
+        case 3:
+            currentApp = 3;
+            guessThePhraseData['answer'] = guessThePhraseData.phrasePool[Math.floor(Math.random()*guessThePhraseData.phrasePool.length)];
+            console.log(`Answer: ${guessThePhraseData['answer']}`)
+            guessThePhraseData['count']=0;
+            guessThePhraseData['active'] = true;
+            guessThePhraseData['guessLetter'] = true;
+            guessThePhraseData['userAnswer'] = "";
+            guessThePhraseData['userAnswerMap'] = {};
+            for(let i=0; i<guessThePhraseData['answer'].length; i++){
+                if(guessThePhraseData['answer'][i] == " "){
+                    guessThePhraseData['userAnswer']+=(" ");
+                    guessThePhraseData['userAnswerMap'][i] = " ";
+                }else{
+                    guessThePhraseData['userAnswer']+=("*");
+                    guessThePhraseData['userAnswerMap'][i] = "*";
+                }
+            }
+            messageQueue.push(
+                "Starting Guess the Phrase", 
+                "Type 'exit' at any time to return to the main menu",
+                "   ",
+                "Can you decipher the text?");
+            guessThePhraseApp();
+            break;
         default:
             displayText(activityPrompt, "Please make a valid selection. Type help to see options again.", 0);
     }
 }
 
-const numbersGameApp = (guess=null) => {
-    if(guess){
+const numbersGameApp = (guess="") => {
+    if(guess.length>0){
         if(isNaN(guess)){
             displayText(activityPrompt, "Please enter a valid number", 0);
         }else{
@@ -145,8 +174,7 @@ const numbersGameApp = (guess=null) => {
 }
 
 const calculatorApp = (userInput=null) => {
-    // Handle negative numbers
-    let overrideOperator = null;
+    let overrideOperator = null; // Handle negative numbers
     if(userInput){
         if(userInput.includes('+-')||userInput.includes('--')||userInput.includes('*-')||userInput.includes('/-')){
             overrideOperator = true;
@@ -213,6 +241,66 @@ const calculatorApp = (userInput=null) => {
         }
     }
     displayText(activityPrompt, " ", 0);
+}
+
+const guessThePhraseApp = (userInput="") => {
+    if(userInput.length>0){
+        if(guessThePhraseData['guessLetter']){
+            if(userInput.length>1){
+                messageQueue.push("You can only guess one letter at a time");
+            }else{
+                guessThePhraseData['userAnswer'] = "";
+                guessThePhraseData['count']++;
+                guessThePhraseData['guessLetter']=false;
+
+                for(let i=0; i<guessThePhraseData['answer'].length; i++){
+                    if(guessThePhraseData['answer'][i]==userInput.toLowerCase()){
+                        guessThePhraseData['userAnswerMap'][i]=userInput.toLowerCase();
+                    }
+                }
+
+                for(k in guessThePhraseData['userAnswerMap']){
+                    guessThePhraseData['userAnswer']+=guessThePhraseData['userAnswerMap'][k];
+                }
+
+                if(guessThePhraseData['userAnswer']==guessThePhraseData['answer']){
+                    messageQueue.push("You got it!");
+                    messageQueue.push(`The answer was: ${guessThePhraseData['answer']}`);
+                    guessThePhraseData['active'] = false;
+                    backToMain();
+                }
+            }
+        }else{
+            if(userInput.toLowerCase()==guessThePhraseData['answer']){
+                messageQueue.push("You got it!");
+                messageQueue.push(`The answer was: ${guessThePhraseData['answer']}`);
+                guessThePhraseData['active'] = false;
+                backToMain();
+            }else{
+                messageQueue.push("Incorrect guess");
+            }
+            guessThePhraseData['guessLetter']=true;
+        }
+    }
+    if(guessThePhraseData['active']){
+        if(guessThePhraseData['count']>=10 && guessThePhraseData['guessLetter']){
+            messageQueue.push("Game over");
+            messageQueue.push(`The answer was: ${guessThePhraseData['answer']}`);
+            guessThePhraseData['active'] = false;
+            backToMain();
+            return;
+        }
+        if(guessThePhraseData['count']>0 && guessThePhraseData['guessLetter']){
+            messageQueue.push(`You have guessed ${guessThePhraseData['count']} time(s)`);
+        }
+        messageQueue.push(guessThePhraseData['userAnswer']);
+        if(guessThePhraseData['guessLetter']){
+            messageQueue.push("Guess a letter");
+        }else{
+            messageQueue.push("Guess the phrase");
+        }
+        displayText(activityPrompt, " ", 0);
+    }
 }
 
 const backToMain = _ => {
