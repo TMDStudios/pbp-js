@@ -1,6 +1,7 @@
 var consoleReady = false;
 var textSpeed = 25;
 var currentApp = 0; //0-Main, 1-Numbers, 2-Calc, 3-Phrase, 4-Username/Password
+var regEx = /^[a-zA-Z]+$/;
 const messageQueue = ["Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password"];
 const numbersGameData = {};
 const guessThePhraseData = {
@@ -16,7 +17,7 @@ const enterKeyPressed = (event) => {
             const lastUserInput = document.getElementById("userInput").innerHTML.split("<span")[0];
             handleUserInput(lastUserInput, false, true);
             if(lastUserInput.toLowerCase()=="exit"){
-                messageQueue.push("Returning to main menu.");
+                messageQueue.push("Returning to main menu");
                 backToMain();
             }else{
                 switch(currentApp){
@@ -57,7 +58,9 @@ const displayText = (element, text, letterPos) => {
     element.innerHTML += text[letterPos];
     letterPos++;
     if(letterPos==text.length){
-        element.innerHTML += "<br>";
+        if(text.trim().length>0){
+            element.innerHTML += "<br>";
+        }
         document.getElementById("fauxTerminal").scrollTop = document.getElementById("fauxTerminal").scrollHeight;
         if(messageQueue.length>0){
             displayText(activityPrompt, messageQueue[0], 0);
@@ -120,6 +123,7 @@ const startApp = selectedApp => {
             guessThePhraseData['answer'] = guessThePhraseData.phrasePool[Math.floor(Math.random()*guessThePhraseData.phrasePool.length)];
             console.log(`Answer: ${guessThePhraseData['answer']}`)
             guessThePhraseData['count']=0;
+            guessThePhraseData['guessedLetters']="";
             guessThePhraseData['active'] = true;
             guessThePhraseData['guessLetter'] = true;
             guessThePhraseData['userAnswer'] = "";
@@ -168,6 +172,9 @@ const numbersGameApp = (guess="") => {
         if(numbersGameData['count']>0){
             displayText(activityPrompt, "Guess a number between 0 and 10", 0);
         }else{
+            if(guess.trim().length<1){
+                messageQueue.push("Please enter a valid number")
+            }
             displayText(activityPrompt, " ", 0);
         }
     }
@@ -248,10 +255,19 @@ const guessThePhraseApp = (userInput="") => {
         if(guessThePhraseData['guessLetter']){
             if(userInput.length>1){
                 messageQueue.push("You can only guess one letter at a time");
+            }else if(!userInput.match(regEx)){
+                messageQueue.push("You can only guess letters");
             }else{
+                // check for space
                 guessThePhraseData['userAnswer'] = "";
                 guessThePhraseData['count']++;
                 guessThePhraseData['guessLetter']=false;
+
+                if(guessThePhraseData['guessedLetters'].length==0){
+                    guessThePhraseData['guessedLetters']+=userInput;
+                }else{
+                    guessThePhraseData['guessedLetters']+=`, ${userInput}`;
+                }
 
                 for(let i=0; i<guessThePhraseData['answer'].length; i++){
                     if(guessThePhraseData['answer'][i]==userInput.toLowerCase()){
@@ -293,7 +309,10 @@ const guessThePhraseApp = (userInput="") => {
         if(guessThePhraseData['count']>0 && guessThePhraseData['guessLetter']){
             messageQueue.push(`You have guessed ${guessThePhraseData['count']} time(s)`);
         }
-        messageQueue.push(guessThePhraseData['userAnswer']);
+        messageQueue.push(" - - - ");
+        messageQueue.push(`Phrase: ${guessThePhraseData['userAnswer']}`);
+        messageQueue.push(`Guessed Letters: ${guessThePhraseData['guessedLetters']}`);
+        messageQueue.push(" - - - ");
         if(guessThePhraseData['guessLetter']){
             messageQueue.push("Guess a letter");
         }else{
@@ -306,7 +325,7 @@ const guessThePhraseApp = (userInput="") => {
 const backToMain = _ => {
     currentApp = 0;
     messageQueue.push(
-        "*************************", 
+        "-------------------------", 
         "Choose an activity from the list below", 
         "1: Numbers Game", 
         "2: Calculator", 
