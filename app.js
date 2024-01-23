@@ -1,12 +1,18 @@
 var consoleReady = false;
 var textSpeed = 25;
 var currentApp = 0; //0-Main, 1-Numbers, 2-Calc, 3-Phrase, 4-Username/Password
-var regEx = /^[a-zA-Z]+$/;
+const regExLetters = /^[a-zA-Z]+$/;
+const regExCaps = /^[A-Z]+$/;
+const regExNumbers = /^[0-9]+$/;
 const messageQueue = ["Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password"];
 const numbersGameData = {};
 const guessThePhraseData = {
     phrasePool: ["this is the secret phrase", "she sells seashells", "this is the way", "fun with flags", "may the force be with you"]
 };
+const usernamePasswordData = {
+    users: ["Sam", "Frank", "Jane"],
+    specialCharacters: ['!', '@', '#', '$']
+}
 
 const enterKeyPressed = (event) => {
     if(consoleReady){
@@ -31,7 +37,8 @@ const enterKeyPressed = (event) => {
                         guessThePhraseApp(lastUserInput);
                         break;
                     case 4:
-                        // Username and Password
+                        usernameAndPasswordApp(lastUserInput);
+                        break;
                     default:
                         if(lastUserInput.toLowerCase()=="help"){
                             messageQueue.push("Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password");
@@ -144,6 +151,18 @@ const startApp = selectedApp => {
                 "Can you decipher the text?");
             guessThePhraseApp();
             break;
+        case 4:
+            currentApp = 4;
+            usernamePasswordData['newUser']={
+                name: "",
+                pw: ""
+            };
+            messageQueue.push(
+                "Starting Username and Password App", 
+                "This is just a basic demo that can be used as a starting point for login and registration", 
+                "Type 'exit' at any time to return to the main menu");
+            usernameAndPasswordApp();
+            break;
         default:
             displayText(activityPrompt, "Please make a valid selection. Type help to see options again.", 0);
     }
@@ -255,7 +274,7 @@ const guessThePhraseApp = (userInput="") => {
         if(guessThePhraseData['guessLetter']){
             if(userInput.length>1){
                 messageQueue.push("You can only guess one letter at a time");
-            }else if(!userInput.match(regEx)){
+            }else if(!regExLetters.test(userInput)){
                 messageQueue.push("You can only guess letters");
             }else{
                 // check for space
@@ -320,6 +339,90 @@ const guessThePhraseApp = (userInput="") => {
         }
         displayText(activityPrompt, " ", 0);
     }
+}
+
+const usernameAndPasswordApp = (userInput="") => {
+    if(userInput.length>0){
+        if(usernamePasswordData['newUser'].name.length==0){
+            if(validateUsername(userInput)){
+                usernamePasswordData['newUser'].name = userInput;
+                messageQueue.push("Username created");
+                messageQueue.push("Enter your password");
+            }
+        }else{
+            if(validatePw(userInput)){
+                usernamePasswordData['newUser'].pw = userInput;
+                messageQueue.push("Password created");
+                messageQueue.push(`Your username is: ${usernamePasswordData['newUser'].name} and your password is: ${usernamePasswordData['newUser'].pw}`);
+                backToMain();
+            }
+        }
+    }else{
+        if(usernamePasswordData['newUser'].name.length==0){
+            messageQueue.push("Enter your username");
+        }
+    }
+    if(usernamePasswordData['newUser'].name.length==0 || usernamePasswordData['newUser'].pw.length==0){
+        displayText(activityPrompt, " ", 0);
+    }
+}
+
+const validateUsername = (userInput) => {
+    let checkPassed = true;
+    for(i in usernamePasswordData['users']){
+        if(userInput.toLowerCase()==usernamePasswordData['users'][i].toLowerCase()){
+            messageQueue.push("User already exists");
+            checkPassed=false;
+        }
+    }
+    if(userInput.length<3 || userInput.length>14){
+        messageQueue.push("Username must be between 3 and 14 characters long");
+        checkPassed=false;
+    }
+    if(!regExLetters.test(userInput)){
+        messageQueue.push("Username must not contain numbers");
+        checkPassed=false;
+    }
+    return checkPassed;
+}
+
+const validatePw = (userInput) => {
+    let checkPassed = true;
+    let capsPassed = false;
+    let specialPassed = false;
+    let numsPassed = false;
+    for(i in userInput){
+        if(regExCaps.test(userInput[i])){
+            capsPassed=true;
+        }
+    }
+    if(!capsPassed){
+        messageQueue.push("Password must contain a capital letter");
+        checkPassed=false;
+    }
+    for(i in usernamePasswordData['specialCharacters']){
+        if(userInput.includes(usernamePasswordData['specialCharacters'][i])){
+            specialPassed=true;
+        }
+    }
+    if(!specialPassed){
+        messageQueue.push("Password must contain a special character ('!', '@', '#', '$')");
+        checkPassed=false;
+    }
+    for(i in userInput){
+        if(regExNumbers.test(i)){
+            numsPassed=true;
+        }
+    }
+    if(!numsPassed){
+        messageQueue.push("Password must contain a number");
+        checkPassed=false;
+    }
+    if(userInput.length<7){
+        messageQueue.push("Password must be at least 8 characters long");
+        checkPassed=false;
+    }
+    return checkPassed;
 }
 
 const backToMain = _ => {
