@@ -1,17 +1,14 @@
 var consoleReady = false;
 var textSpeed = 25;
 var currentApp = 0; //0-Main, 1-Numbers, 2-Calc, 3-Phrase, 4-Username/Password
-const regExLetters = /^[a-zA-Z]+$/;
-const regExCaps = /^[A-Z]+$/;
-const regExNumbers = /^[0-9]+$/;
 const messageQueue = ["Choose an activity from the list below", "1: Numbers Game", "2: Calculator", "3: Guess the Phrase", "4: Username and Password"];
 const numbersGameData = {};
 const guessThePhraseData = {
-    phrasePool: ["this is the secret phrase", "she sells seashells", "this is the way", "fun with flags", "may the force be with you"]
+    phrasePool: ["this is the secret phrase", "she sells seashells", "this is the way", "fun with flags", "may the force be with you"],
+    MAX_ATTEMPTS: 10
 };
 const usernamePasswordData = {
-    users: ["Sam", "Frank", "Jane"],
-    specialCharacters: ['!', '@', '#', '$']
+    users: ["Sam", "Frank", "Jane"]
 }
 
 const enterKeyPressed = (event) => {
@@ -274,7 +271,7 @@ const guessThePhraseApp = (userInput="") => {
         if(guessThePhraseData['guessLetter']){
             if(userInput.length>1){
                 messageQueue.push("You can only guess one letter at a time");
-            }else if(!regExLetters.test(userInput)){
+            }else if(!/^[a-zA-Z]+$/.test(userInput)){
                 messageQueue.push("You can only guess letters");
             }else{
                 // check for space
@@ -318,7 +315,7 @@ const guessThePhraseApp = (userInput="") => {
         }
     }
     if(guessThePhraseData['active']){
-        if(guessThePhraseData['count']>=10 && guessThePhraseData['guessLetter']){
+        if(guessThePhraseData['count']>=guessThePhraseData.MAX_ATTEMPTS && guessThePhraseData['guessLetter']){
             messageQueue.push("Game over");
             messageQueue.push(`The answer was: ${guessThePhraseData['answer']}`);
             guessThePhraseData['active'] = false;
@@ -368,61 +365,40 @@ const usernameAndPasswordApp = (userInput="") => {
 }
 
 const validateUsername = (userInput) => {
-    let checkPassed = true;
-    for(i in usernamePasswordData['users']){
-        if(userInput.toLowerCase()==usernamePasswordData['users'][i].toLowerCase()){
-            messageQueue.push("User already exists");
-            checkPassed=false;
-        }
+    const trimmedUsername = userInput.trim();
+    if(usernamePasswordData['users'].some((user) => user.toLowerCase() === trimmedUsername.toLowerCase())){
+        setMessage("User already exists");
+        return false;
     }
-    if(userInput.length<3 || userInput.length>14){
+    if(trimmedUsername.length<3 || trimmedUsername.length>14){
         messageQueue.push("Username must be between 3 and 14 characters long");
-        checkPassed=false;
+        return false;
     }
-    if(!regExLetters.test(userInput)){
+    if(!/^[a-zA-Z]+$/.test(trimmedUsername)){
         messageQueue.push("Username must not contain numbers");
-        checkPassed=false;
+        return false;
     }
     return checkPassed;
 }
 
 const validatePw = (userInput) => {
-    let checkPassed = true;
-    let capsPassed = false;
-    let specialPassed = false;
-    let numsPassed = false;
-    for(i in userInput){
-        if(regExCaps.test(userInput[i])){
-            capsPassed=true;
-        }
-    }
-    if(!capsPassed){
+    if(!/[A-Z]/.test(userInput)){
         messageQueue.push("Password must contain a capital letter");
-        checkPassed=false;
+        return false;
     }
-    for(i in usernamePasswordData['specialCharacters']){
-        if(userInput.includes(usernamePasswordData['specialCharacters'][i])){
-            specialPassed=true;
-        }
-    }
-    if(!specialPassed){
+    if(!/[!@#$]/.test(userInput)){
         messageQueue.push("Password must contain a special character ('!', '@', '#', '$')");
-        checkPassed=false;
+        return false;
     }
-    for(i in userInput){
-        if(regExNumbers.test(i)){
-            numsPassed=true;
-        }
-    }
-    if(!numsPassed){
+    if(!/[0-9]/.test(userInput)){
         messageQueue.push("Password must contain a number");
-        checkPassed=false;
+        return false;
     }
-    if(userInput.length<7){
+    if(userInput.length < 8){
         messageQueue.push("Password must be at least 8 characters long");
-        checkPassed=false;
+        return false;
     }
-    return checkPassed;
+    return true;
 }
 
 const backToMain = _ => {
